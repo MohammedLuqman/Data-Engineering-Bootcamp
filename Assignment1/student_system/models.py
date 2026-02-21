@@ -5,6 +5,7 @@ class Student:
     self.grades= grades if grades is not None else[]
     
   @classmethod
+  #if user forgets to enter the required data this one sets these value for it
   def initial_value(cls):
         return cls("Student", "00", [0])
     
@@ -59,5 +60,6 @@ class Classroom:
       
     return total / len(self.Student_list)
        
+
 
 
