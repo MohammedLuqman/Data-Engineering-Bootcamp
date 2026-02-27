@@ -62,7 +62,7 @@ def cosine_sim(vec1 , vec2):
     return dot_product / (vector1 * vector2)
     
 def similarity_matrix(vectors):
-    # Ain't lying I used AI tool to do it, I have one brain cell and it stopped here, SORRY
+    # Ain't lying I used AI tool to do this, I have one brain cell and it stopped here, SORRY
     dot_product = np.dot(vectors, vectors.T)
     norms = np.linalg.norm(vectors, axis=1)
     denominator = np.outer(norms, norms) + 1e-9
@@ -86,4 +86,5 @@ def most_similar(article_id, sim_matrix, file_path="Articles.csv"):
     scored_titles.sort(reverse=True)
     top_3 = scored_titles[:3]
     
+
     return top_3
