@@ -1,4 +1,4 @@
-![Python](https://img.shields.io/badge/Python-3.14.3-blue)
+![Python](https://img.shields.io/badge/Python-3.14-blue)
 ![Status](https://img.shields.io/badge/Status-Active-success)
 
 
