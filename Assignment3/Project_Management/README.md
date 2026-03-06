@@ -3,7 +3,7 @@
 
 
 ### 1
-> I used AI to create the HTML front-end page.
+> I used AI to create the HTML front-end page quickly.
 
 ### 2
 > When you add a user along with a project linked to that user and its tasks,  
