@@ -236,7 +236,8 @@ async function deleteProject(id) {
         if (await handleResponse(res)) loadProjects();
     }
 }
-
+    
+//Tasks
 async function loadTasks() {
     const res = await fetch(`${API}/tasks`);
     let data = await res.json();
@@ -293,4 +294,5 @@ async function deleteTask(id) {
 window.onload = () => { loadUsers(); loadProjects(); loadTasks(); }
 </script>
 </body>
+
 </html>
