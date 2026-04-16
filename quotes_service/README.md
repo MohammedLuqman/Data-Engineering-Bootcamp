@@ -29,13 +29,13 @@ deb package for easy deployment
 
 ### ⚙️ Installation
 
-# sudo dpkg -i package.deb
+ sudo dpkg -i package.deb
 
 ---
 
 ### ▶️ Run manually
 
-# uvicorn app.main:app --host 127.0.0.1  --port 8000
+ uvicorn app.main:app --host 127.0.0.1  --port 8000
 
 ---
 
@@ -83,16 +83,15 @@ quotes_service/
 
 ### 🔐 Port
 
-# Runs on:
-# http://localhost:8000
+ Runs on:
+ http://localhost:8000
 
 
 ---
 
 ### 📦 Deployment
 
-# Packaged as .deb and runs automatically using systemd.
----
+ Packaged as .deb and runs automatically using systemd.
 
 ### 🔁 Service Commands
 
