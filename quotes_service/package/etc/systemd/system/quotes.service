@@ -1,0 +1,13 @@
+[Unit]
+Description=Quote API service
+After=postgresql.service
+
+[Service]
+User=luqman
+Group=luqman
+WorkingDirectory=/opt/quotes_service
+ExecStart=/opt/quotes_service/scripts/start.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
