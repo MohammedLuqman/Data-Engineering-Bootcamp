@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; padding-bottom: 50px; }
+        .section-card { border: none; border-radius: 16px; margin-bottom: 2rem; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .card-header { padding: 1.25rem; font-weight: 700; border: none; color: white; letter-spacing: 0.5px; }
+        .card-body { padding: 1.5rem; background: white; }
+
+        .header-users { background-color: #334155; } 
+        .header-projects { background-color: #64748b; } 
+        .header-tasks { background-color: #cbd5e1; color: #1e293b; } 
+
+        .btn-action { border: none; color: white; font-weight: 600; transition: 0.2s; }
+        .btn-users { background-color: #334155; }
+        .btn-projects { background-color: #64748b; }
+        .btn-tasks { background-color: #94a3b8; color: white; }
+        .btn-action:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .list-group-item { border: 1px solid #f1f5f9; margin-bottom: 10px; border-radius: 12px !important; transition: 0.3s; cursor: pointer; }
+        .list-group-item:hover { background-color: #f8fafc; border-color: #cbd5e1; }
+        .active-filter { border: 2px solid #64748b !important; background-color: #f1f5f9 !important; }
+        
+        .id-badge { font-weight: 800; color: #1e293b; background: #e2e8f0; padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; }
+        .search-btn { background: #334155; color: white; border: none; padding: 0 25px; font-weight: 600; }
+        .search-btn:hover { background: #0f172a; }
+        
+        .form-control { border-radius: 8px; border: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+
+<div class="container mt-5" style="max-width: 850px;">
+    <div class="section-card">
+        <div class="card-header header-users d-flex justify-content-between align-items-center">
+            <span>USERS</span>
+            <button class="btn btn-sm btn-outline-light" onclick="resetAll()">Clear Filters</button>
+        </div>
+        <div class="card-body">
+            <div class="row g-2 mb-3">
+                <div class="col-md-5"><input id="username" class="form-control" placeholder="Name"></div>
+                <div class="col-md-5"><input id="email" class="form-control" placeholder="Email"></div>
+                <div class="col-md-2"><button id="userSaveBtn" class="btn btn-action btn-users w-100" onclick="saveUser()">Save</button></div>
+            </div>
+            <div class="input-group">
+                <input id="userSearchInput" class="form-control" placeholder="Search users...">
+                <button class="btn search-btn" onclick="runSearch('usersList', 'userSearchInput')">SEARCH</button>
+            </div>
+            <ul class="list-group mt-3" id="usersList"></ul>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="card-header header-projects">PROJECTS</div>
+        <div class="card-body">
+            <div class="row g-2 mb-3">
+                <div class="col-md-4"><input id="projectTitle" class="form-control" placeholder="Title"></div>
+                <div class="col-md-4"><input id="projectDesc" class="form-control" placeholder="Description"></div>
+                <div class="col-md-2"><input id="ownerId" class="form-control" placeholder="Owner ID"></div>
+                <div class="col-md-2"><button id="projSaveBtn" class="btn btn-action btn-projects w-100" onclick="saveProject()">Save</button></div>
+            </div>
+            <div class="input-group">
+                <input id="projectSearchInput" class="form-control" placeholder="Search projects...">
+                <button class="btn search-btn" onclick="runSearch('projectsList', 'projectSearchInput')">SEARCH</button>
+            </div>
+            <ul class="list-group mt-3" id="projectsList"></ul>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <div class="card-header header-tasks">TASKS</div>
+        <div class="card-body">
+            <div class="row g-2 mb-3">
+                <div class="col-md-3"><input id="taskDesc" class="form-control" placeholder="Task details..."></div>
+                <div class="col-md-3"><input id="taskProjectId" class="form-control" placeholder="Project ID"></div>
+                <div class="col-md-3"><input id="assignedTo" class="form-control" placeholder="User ID"></div>
+                <div class="col-md-3"><button id="taskSaveBtn" class="btn btn-action btn-tasks w-100" onclick="saveTask()">Save</button></div>
+            </div>
+            <div class="input-group">
+                <input id="taskSearchInput" class="form-control" placeholder="Search tasks...">
+                <button class="btn search-btn" onclick="runSearch('tasksList', 'taskSearchInput')">SEARCH</button>
+            </div>
+            <ul class="list-group mt-3" id="tasksList"></ul>
+        </div>
+    </div>
+</div>
+
+<script>
+const API = "http://127.0.0.1:8000";
+let activeUserId = null;
+let editIds = { user: null, project: null, task: null };
+
+function runSearch(listId, inputId) {
+    const val = document.getElementById(inputId).value.toLowerCase();
+    const items = document.querySelectorAll(`#${listId} li`);
+    items.forEach(li => {
+        const content = li.textContent.toLowerCase();
+        li.classList.toggle('d-none', !content.includes(val));
+        li.classList.toggle('d-flex', content.includes(val));
+    });
+}
+
+async function resetAll() {
+    activeUserId = null;
+    await loadUsers(); await loadProjects(); await loadTasks();
+}
+
+async function handleResponse(res) {
+    if (res.ok) {
+        return await res.json();
+    } else {
+        const error = await res.json();
+        console.log(error); 
+
+        if (error.detail) {
+            if (Array.isArray(error.detail)) {
+                alert("Error: " + error.detail[0].msg);
+            } else {
+                alert("Error: " + error.detail);
+            }
+        } else {
+            alert("Error: " + JSON.stringify(error));
+        }
+
+        return null;
+    }
+}
+
+//Users
+async function loadUsers() {
+    const res = await fetch(`${API}/users`);
+    const data = await res.json();
+    const list = document.getElementById("usersList");
+    list.innerHTML = "";
+    data.forEach(u => {
+        const activeClass = activeUserId === u.id ? 'active-filter' : '';
+        list.innerHTML += `
+        <li class="list-group-item d-flex justify-content-between align-items-center ${activeClass}" onclick="activeUserId=${u.id}; loadProjects(); loadTasks(); loadUsers();">
+            <div><span class="id-badge">ID: ${u.id}</span> <strong class="ms-2">${u.username}</strong><br><small class="text-muted">${u.email}</small></div>
+            <div>
+                <button class="btn btn-sm btn-outline-dark me-1" onclick="event.stopPropagation(); setEditUser(${u.id},'${u.username}','${u.email}')">Edit</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteUser(${u.id})">Del</button>
+            </div>
+        </li>`;
+    });
+}
+
+function setEditUser(id, name, email) {
+    editIds.user = id;
+    document.getElementById("username").value = name;
+    document.getElementById("email").value = email;
+    document.getElementById("userSaveBtn").innerText = "Update";
+}
+
+async function saveUser() {
+    const body = { username: document.getElementById("username").value, email: document.getElementById("email").value };
+    const method = editIds.user ? "PUT" : "POST";
+    const url = editIds.user ? `${API}/users/${editIds.user}` : `${API}/users`;
+    
+    const res = await fetch(url, { method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    const data = await handleResponse(res);
+    
+    if (data) {
+        editIds.user = null; 
+        document.getElementById("userSaveBtn").innerText = "Save";
+        document.getElementById("username").value = ""; 
+        document.getElementById("email").value = "";
+        loadUsers();
+    }
+}
+
+async function deleteUser(id) {
+    if(confirm("Delete this user? Be aware that the project connected to it will be deleted and any related fields")) {
+        const res = await fetch(`${API}/users/${id}`, {method: "DELETE"});
+        if (await handleResponse(res)) {
+            if(activeUserId === id) activeUserId = null;
+            loadUsers();
+        }
+    }
+}
+
+//Projects
+async function loadProjects() {
+    const res = await fetch(`${API}/projects`);
+    let data = await res.json();
+    if(activeUserId) data = data.filter(p => p.owner_id === activeUserId);
+    const list = document.getElementById("projectsList");
+    list.innerHTML = "";
+    data.forEach(p => {
+        list.innerHTML += `
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div><span class="id-badge">ID: ${p.id}</span><br><strong>Project name: </strong>${p.title}<br><strong>Desc: </strong>${p.description}<br><small class="text-muted">Owner ID: ${p.owner_id}</small></div>
+            <div>
+                <button class="btn btn-sm btn-outline-secondary me-1" onclick="setEditProj(${p.id},'${p.title}','${p.description}',${p.owner_id})">Edit</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteProject(${p.id})">Del</button>
+            </div>
+        </li>`;
+    });
+}
+
+function setEditProj(id, title, desc, owner) {
+    editIds.project = id;
+    document.getElementById("projectTitle").value = title;
+    document.getElementById("projectDesc").value = desc;
+    document.getElementById("ownerId").value = owner;
+    document.getElementById("projSaveBtn").innerText = "Update";
+}
+
+async function saveProject() {
+    const body = { 
+        title: document.getElementById("projectTitle").value, 
+        description: document.getElementById("projectDesc").value, 
+        owner_id: parseInt(document.getElementById("ownerId").value) 
+    };
+    const method = editIds.project ? "PUT" : "POST";
+    const url = editIds.project ? `${API}/projects/${editIds.project}` : `${API}/projects`;
+    
+    const res = await fetch(url, { method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    if (await handleResponse(res)) {
+        editIds.project = null; 
+        document.getElementById("projSaveBtn").innerText = "Save";
+        document.getElementById("projectTitle").value = "";
+        document.getElementById("projectDesc").value = "";
+        document.getElementById("ownerId").value = "";
+        loadProjects();
+    }
+}
+
+async function deleteProject(id) {
+    if(confirm("Delete this project?")) {
+        const res = await fetch(`${API}/projects/${id}`, {method: "DELETE"});
+        if (await handleResponse(res)) loadProjects();
+    }
+}
+    
+//Tasks
+async function loadTasks() {
+    const res = await fetch(`${API}/tasks`);
+    let data = await res.json();
+    if(activeUserId) data = data.filter(t => t.assigned_to === activeUserId);
+    const list = document.getElementById("tasksList");
+    list.innerHTML = "";
+    data.forEach(t => {
+        list.innerHTML += `
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <div>${t.description} <br><small class="text-muted">Proj: ${t.project_id} | User: ${t.assigned_to}</small></div>
+            <div>
+                <button class="btn btn-sm btn-outline-dark me-1" onclick="setEditTask(${t.id},'${t.description}',${t.project_id},${t.assigned_to})">Edit</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(${t.id})">Del</button>
+            </div>
+        </li>`;
+    });
+}
+
+function setEditTask(id, desc, proj, user) {
+    editIds.task = id;
+    document.getElementById("taskDesc").value = desc;
+    document.getElementById("taskProjectId").value = proj;
+    document.getElementById("assignedTo").value = user;
+    document.getElementById("taskSaveBtn").innerText = "Update";
+}
+
+async function saveTask() {
+    const body = { 
+        description: document.getElementById("taskDesc").value, 
+        project_id: parseInt(document.getElementById("taskProjectId").value), 
+        assigned_to: parseInt(document.getElementById("assignedTo").value) 
+    };
+    const method = editIds.task ? "PUT" : "POST";
+    const url = editIds.task ? `${API}/tasks/${editIds.task}` : `${API}/tasks`;
+    
+    const res = await fetch(url, { method, headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
+    if (await handleResponse(res)) {
+        editIds.task = null; 
+        document.getElementById("taskSaveBtn").innerText = "Save";
+        document.getElementById("taskDesc").value = "";
+        document.getElementById("taskProjectId").value = "";
+        document.getElementById("assignedTo").value = "";
+        loadTasks();
+    }
+}
+
+async function deleteTask(id) {
+    if(confirm("Delete this task?")) {
+        const res = await fetch(`${API}/tasks/${id}`, {method: "DELETE"});
+        if (await handleResponse(res)) loadTasks();
+    }
+}
+
+window.onload = () => { loadUsers(); loadProjects(); loadTasks(); }
+</script>
+</body>
+
+</html>

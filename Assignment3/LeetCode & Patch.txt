@@ -1,0 +1,14 @@
+Leetcode Link
+https://leetcode.com/u/MohammedLuqman/
+
+
+| Feature     | PUT                           | PATCH                       |
+| ----------- | ----------------------------- | --------------------------- |
+| Update type | Full replacement              | Partial update              |
+| Data sent   | Entire resource               | Only changed fields         |
+| Risk        | Missing fields may be removed | Other fields stay unchanged |
+| Idempotent  | Yes                           | Usually, but not always     |
+| Typical use | Replace object                | Modify few fields           |
+
+PUT = Replace everything
+PATCH = Change only what you send
