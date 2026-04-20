@@ -31,19 +31,19 @@ deb package for easy deployment
 
 The system follows a structured data pipeline from data collection to user access:
 
-Website (quotes.toscrape.com)
-        ↓
-Scraper Script (scraper.py)
-        ↓
-Data Cleaning & Structuring
-        ↓
-PostgreSQL Database
-        ↓
-FastAPI Application
-        ↓
-API Endpoints (/quotes)
-        ↓
-User (Browser / Client)
+1.Website (quotes.toscrape.com)
+        
+2.Scraper Script (scraper.py)
+        
+3.Data Cleaning & Structuring
+        
+4.PostgreSQL Database
+        
+5.FastAPI Application
+        
+6.API Endpoints (/quotes)
+        
+7.User (Browser / Client)
 
 ---
 
