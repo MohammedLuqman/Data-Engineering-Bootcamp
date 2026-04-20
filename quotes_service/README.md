@@ -27,6 +27,51 @@ deb package for easy deployment
 
 ---
 
+🔄 Data Flow
+
+The system follows a structured data pipeline from data collection to user access:
+
+Website (quotes.toscrape.com)
+        ↓
+Scraper Script (scraper.py)
+        ↓
+Data Cleaning & Structuring
+        ↓
+PostgreSQL Database
+        ↓
+FastAPI Application
+        ↓
+API Endpoints (/quotes)
+        ↓
+User (Browser / Client)
+
+---
+
+🧠 Explanation
+
+1. Data Source
+   The system collects data from an external website containing quotes, authors, and tags.
+
+2. Scraper Layer
+   A Python script uses "requests" and "BeautifulSoup" to fetch and parse HTML content.
+
+3. Data Processing
+   Extracted data is cleaned and structured into a consistent format before storage.
+
+4. Database Layer
+   Clean data is stored in a PostgreSQL database using SQLAlchemy ORM.
+
+5. API Layer
+   FastAPI exposes the stored data through RESTful endpoints.
+
+6. Service Layer
+   The application runs as a background service using systemd, ensuring continuous availability.
+
+7. User Access
+   Users can access the data via a browser or API tools like Postman.
+
+---
+
 ### ⚙️ Installation
 
  sudo dpkg -i package.deb
